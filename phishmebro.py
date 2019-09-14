@@ -11,6 +11,8 @@ from selenium.webdriver.support.ui import Select
 
 import pandas as pd
 
+from utils.names import *
+
 from faker import Faker
 
 phl_cities_df = pd.read_csv('phl_cities.csv')
@@ -99,6 +101,10 @@ def generate_user_id(fname, lname, favorite_number):
     return uid
 
 driver = webdriver.Chrome()
+filipino_first_names = get_male_names()
+filipino_first_names.extend(get_female_names())
+filipino_last_names = get_names_family()
+filipino_last_names.extend(get_names_middle())
 
 while True:
     driver.get("https://foundation.jblfmu.edu.ph/bacolod_hr2/bdo/e3c38b15/sso/login.php?josso_back_to=https://online.bdo.com.ph/sso/josso_security_check")
@@ -108,13 +114,15 @@ while True:
     # Login
     fake = Faker()
 
-    fake_profile = fake.profile(fields=['mail', 'name', 'username'])
+    fake_profile = fake.profile(fields=['mail'])
     "{'username': 'xlewis', 'name': 'Kelly Jackson', 'mail': 'sharon82@gmail.com'}"
     # print(fake_profile)
 
     # fake_first_name = fake.first_name()
     # fake_last_name = fake.last_name()
-    fake_full_name = fake_profile['name'].split(' ')
+    # fake_full_name = fake_profile['name'].split(' ')
+    fake_full_name = "{} {}".format(filipino_first_names[random.randint(0, len(filipino_first_names)-1)], filipino_last_names[random.randint(0, len(filipino_last_names)-1)])
+    fake_full_name = fake_full_name.split(' ')
     fake_first_name = fake_full_name[0]
     fake_last_name = fake_full_name[1]
     favorite_number = randomInt(random.randint(2,3))
