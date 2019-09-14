@@ -30,6 +30,8 @@ def get_element_type(element_name, type, driver):
         element = driver.find_element_by_id(element_name)
     elif type == 'name':
         element = driver.find_element_by_name(element_name)
+    elif type == 'xpath':
+        element = driver.find_element_by_xpath(element_name)
     return element
 
 def inputTextField(text, element_name, type, driver):
@@ -60,6 +62,42 @@ def inputSelectField(value, element_name, type, driver, select_by='text'):
         print("Defaulting to Visible Text")
         select.select_by_visible_text(value)
 
+def generate_email(fname, lname, mail, favorite_number):
+    choice = random.randint(0, 3)
+    domain = mail.split("@")[1]
+    email = None
+    if choice == 0:
+        email = "{}{}@{}".format(fname, lname, domain)
+    elif choice == 1:
+        email = "{}_{}{}@{}".format(fname, lname, favorite_number, domain)
+    elif choice == 2:
+        email = "{}_{}{}@{}".format(lname, fname, favorite_number, domain)
+    elif choice == 3:
+        email = "{}{}@{}".format(fname, favorite_number, domain)
+    email = email.lower()
+    return email
+
+def generate_user_id(fname, lname, favorite_number):
+    choice = random.randint(0, 6)
+    uid = None
+    if choice == 0:
+        uid = "{}{}".format(fname, lname)
+    elif choice == 1:
+        uid = "{}{}".format(fname[0], lname)
+    elif choice == 2:
+        uid = "{}{}".format(lname[0], fname)
+    elif choice == 3:
+        uid = "{}{}{}".format(fname, lname, favorite_number)
+    elif choice == 4:
+        uid = "{}{}{}".format(fname[0], lname, favorite_number)
+    elif choice == 5:
+        uid = "{}{}{}".format(lname[0], fname, favorite_number)
+    elif choice == 6:
+        uid = "{}{}".format(fname, favorite_number)
+
+    uid = uid.lower()
+    return uid
+
 driver = webdriver.Chrome()
 
 while True:
@@ -68,22 +106,20 @@ while True:
     wait = WebDriverWait(driver, 10)
     element = wait.until(EC.title_contains('Banco De Oro'))
     # Login
-
-    gen_user_id = randomString(random.randint(8, 12))
-    gen_password = randomString(random.randint(10,14))
-
-    login_user_id = driver.find_element_by_name('channelUserID')
-    password_user_id = driver.find_element_by_name('channelPswdPin')
-    login_user_id.send_keys(gen_user_id)
-    password_user_id.send_keys(gen_password)
-
-    loginButton = driver.find_element_by_id('loginButton')
-    loginButton.click()
-
     fake = Faker()
 
-    fake_first_name = fake.first_name()
-    fake_last_name = fake.last_name()
+    fake_profile = fake.profile(fields=['mail', 'name', 'username'])
+    "{'username': 'xlewis', 'name': 'Kelly Jackson', 'mail': 'sharon82@gmail.com'}"
+    # print(fake_profile)
+
+    # fake_first_name = fake.first_name()
+    # fake_last_name = fake.last_name()
+    fake_full_name = fake_profile['name'].split(' ')
+    fake_first_name = fake_full_name[0]
+    fake_last_name = fake_full_name[1]
+    favorite_number = randomInt(random.randint(2,3))
+    fake_email = generate_email(fake_first_name, fake_last_name, fake_profile['mail'], favorite_number)
+
     fake_middle_name = fake.last_name()
     fake_maiden_name = fake.last_name()
 
@@ -97,7 +133,13 @@ while True:
 
     fake_full_address = "{} {} {} {}".format(fake.street_address(), fake.building_number(), fake_city, fake_state)
 
-    domains = ["@yahoo.com", "@google.com", "@hotmail.com", "@rocketmail.com"]
+    gen_user_id = generate_user_id(fake_first_name, fake_last_name, favorite_number)
+    gen_password = randomString(random.randint(10,14))
+
+    inputTextField(gen_user_id, 'channelUserID', 'name', driver)
+    inputTextField(gen_password, 'channelPswdPin', 'name', driver)
+
+    clickButton('loginButton', 'id', driver)
 
     #Real stuff
     account_selection = get_random_index_from_select_options('account', 'name', driver)
@@ -106,7 +148,8 @@ while True:
     inputTextField(gen_password, 'ps', 'id', driver)
     inputTextField(gen_password, 'cps', 'id', driver)
     inputTextField(randomInt(10), 'phoneNumber', 'id', driver)
-    inputTextField("{}{}".format(gen_user_id, domains[random.randint(0, len(domains)-1)]), 'email', 'name', driver)
+    # inputTextField("{}{}".format(gen_user_id, domains[random.randint(0, len(domains)-1)]), 'email', 'name', driver)
+    inputTextField(fake_email, 'email', 'name', driver)
     inputTextField(gen_password, 'epass', 'name', driver)
     inputTextField(fake_first_name, 'fname', 'id', driver)
     inputTextField(fake_middle_name, 'mname', 'id', driver)
@@ -137,4 +180,8 @@ while True:
     exp_year = get_random_index_from_select_options('expyear', 'name', driver)
     inputSelectField(exp_year, 'expyear', 'name', driver, select_by="index")
     inputTextField(fake_security_number, 'securitycode', 'name', driver)
+    # /html/body/div[2]/div[2]/form/div[6]/div/table/tbody/tr/td[2]/select
+    feedback = get_random_index_from_select_options('/html/body/div[2]/div[2]/form/div[6]/div/table/tbody/tr/td[2]/select', 'xpath', driver)
+    inputSelectField(feedback, '/html/body/div[2]/div[2]/form/div[6]/div/table/tbody/tr/td[2]/select', 'xpath', driver, select_by="index")
+
     clickButton('submit', 'name', driver)
